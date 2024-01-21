@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -19,3 +19,18 @@ def read_item(item_id: int, q: str = None):
 @app.put("/items/{item_id}")
 def update_item(item_id: int, item: Item):
     return {"item_name": item.name, "item_id": item_id}
+
+@app.websocket("/websocket")
+async def websocket_endpoint(websocket: WebSocket):
+    print('a new websocket to create.')
+    await websocket.accept()
+    while True:
+        try:
+            message = await websocket.receive_text()
+            print('Receive Text: ' + message)
+            resp = {'message': f'Hello, client! {message}'}
+            await websocket.send_json(resp)
+        except Exception as e:
+            print('error:', e)
+            break
+    print('Bye..')
